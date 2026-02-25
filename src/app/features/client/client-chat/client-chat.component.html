@@ -1,0 +1,209 @@
+<!-- ============================================================
+     CLIENT CHAT - Interface de chat pour les clients
+     Your Car Your Way - POC Chat Angular
+     ============================================================ -->
+
+<div class="chat-container">
+
+  <!-- ─── En-tête ────────────────────────────────────────── -->
+  <mat-toolbar color="primary" class="chat-header">
+    <mat-icon class="chat-header__icon">support_agent</mat-icon>
+    <span class="chat-header__title">Your Car Your Way</span>
+    <span class="chat-header__subtitle">Support Client</span>
+  </mat-toolbar>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ÉTAT : IDLE - Formulaire de démarrage de chat
+       ═══════════════════════════════════════════════════════ -->
+  <div *ngIf="(status$ | async) === 'idle'" class="chat-start">
+    <mat-card class="chat-start__card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="chat-start__avatar">chat</mat-icon>
+        <mat-card-title>Besoin d'aide ?</mat-card-title>
+        <mat-card-subtitle>Démarrez une conversation avec un conseiller</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="startForm" (ngSubmit)="onStartChat()" class="chat-start__form">
+          <mat-form-field appearance="outline">
+            <mat-label>Votre nom</mat-label>
+            <input matInput formControlName="name" placeholder="Jean Dupont">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="startForm.get('name')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+            <mat-error *ngIf="startForm.get('name')?.hasError('minlength')">
+              Minimum 2 caractères
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Votre email</mat-label>
+            <input matInput formControlName="email" type="email" placeholder="jean@exemple.com">
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="startForm.get('email')?.hasError('required')">
+              L'email est requis
+            </mat-error>
+            <mat-error *ngIf="startForm.get('email')?.hasError('email')">
+              Adresse email invalide
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Sujet</mat-label>
+            <mat-select formControlName="subject">
+              <mat-option *ngFor="let s of subjects" [value]="s.value">
+                {{ s.label }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>topic</mat-icon>
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="startForm.invalid"
+            class="chat-start__button"
+          >
+            <mat-icon>chat_bubble</mat-icon>
+            Démarrer le chat
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ÉTAT : WAITING - File d'attente
+       ═══════════════════════════════════════════════════════ -->
+  <div *ngIf="(status$ | async) === 'waiting'" class="chat-waiting">
+    <mat-card class="chat-waiting__card">
+      <mat-card-content class="chat-waiting__content">
+        <mat-spinner diameter="48" color="primary"></mat-spinner>
+        <h3>Recherche d'un conseiller…</h3>
+        <p>
+          Vous êtes en position
+          <strong>{{ queuePosition$ | async }}</strong>
+          dans la file d'attente.
+        </p>
+        <p class="chat-waiting__estimate">
+          <mat-icon>schedule</mat-icon>
+          Temps d'attente estimé :
+          <strong>{{ estimatedWait$ | async }} min</strong>
+        </p>
+
+        <!-- Messages système pré-chat -->
+        <div class="chat-waiting__messages">
+          <ng-container *ngFor="let msg of (messages$ | async); trackBy: trackByMessageId">
+            <app-message-bubble [message]="msg" />
+          </ng-container>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ÉTAT : ACTIVE - Fenêtre de chat
+       ═══════════════════════════════════════════════════════ -->
+  <ng-container *ngIf="(status$ | async) === 'active' || (status$ | async) === 'ended'">
+    <div class="chat-active">
+      <!-- Info agent -->
+      <div class="chat-active__agent-bar">
+        <mat-icon class="agent-avatar">support_agent</mat-icon>
+        <div class="agent-info">
+          <span class="agent-name">{{ agentName$ | async }}</span>
+          <span class="agent-status"
+            [class.online]="(status$ | async) === 'active' && (agentName$ | async)"
+            [class.offline]="(status$ | async) !== 'active' || !(agentName$ | async)">
+            {{ (agentName$ | async) ? ((status$ | async) === 'active' ? 'En ligne' : 'Hors ligne') : 'Déconnecté — transfert en cours…' }}
+          </span>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- Zone de messages -->
+      <div class="chat-active__messages" #messagesContainer>
+        <ng-container *ngFor="let msg of (messages$ | async); trackBy: trackByMessageId">
+          <app-message-bubble
+            [message]="msg"
+            [agentLabel]="(agentName$ | async) || 'Conseiller'"
+          />
+        </ng-container>
+
+        <!-- Indicateur de frappe -->
+        <app-typing-indicator *ngIf="isAgentTyping$ | async" />
+      </div>
+
+      <!-- ── Zone de saisie ── -->
+      <div class="chat-active__input" *ngIf="(status$ | async) === 'active'">
+        <mat-form-field appearance="outline" class="chat-active__field">
+          <input
+            matInput
+            [(ngModel)]="messageContent"
+            (ngModelChange)="onInputChange($event)"
+            (keydown)="onKeyDown($event)"
+            placeholder="Tapez votre message…"
+            autocomplete="off"
+          >
+        </mat-form-field>
+        <button
+          mat-fab
+          color="primary"
+          (click)="onSendMessage()"
+          [disabled]="!messageContent.trim()"
+          class="chat-active__send"
+        >
+          <mat-icon>send</mat-icon>
+        </button>
+      </div>
+
+      <!-- ── Évaluation ── -->
+      <div
+        class="chat-rating"
+        *ngIf="(showRating$ | async) || (status$ | async) === 'ended'"
+      >
+        <mat-card class="chat-rating__card">
+          <mat-card-header>
+            <mat-card-title>Évaluation du support</mat-card-title>
+            <mat-card-subtitle>Votre avis nous aide à nous améliorer</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <!-- Étoiles de notation -->
+            <div class="chat-rating__stars">
+              <button
+                *ngFor="let star of [1,2,3,4,5]"
+                mat-icon-button
+                (click)="setRating(star)"
+                [color]="star <= rating ? 'warn' : undefined"
+              >
+                <mat-icon>{{ star <= rating ? 'star' : 'star_border' }}</mat-icon>
+              </button>
+            </div>
+
+            <mat-form-field appearance="outline" class="chat-rating__feedback">
+              <mat-label>Commentaire (optionnel)</mat-label>
+              <textarea
+                matInput
+                [(ngModel)]="feedback"
+                rows="3"
+                placeholder="Partagez votre expérience…"
+              ></textarea>
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="onSubmitRating()"
+              [disabled]="rating === 0"
+            >
+              <mat-icon>check</mat-icon>
+              Envoyer mon avis
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </ng-container>
+</div>

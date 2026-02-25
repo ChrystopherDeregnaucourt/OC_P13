@@ -1,0 +1,315 @@
+/* ============================================================
+   AGENT DASHBOARD - Styles
+   Your Car Your Way - POC Chat Angular
+   ============================================================ */
+
+:host {
+  display: flex;
+  height: 100vh;
+  background: #f0f2f5;
+}
+
+.agent-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── En-tête ──────────────────────────────────────── */
+.agent-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+
+  &__icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  &__name {
+    font-size: 14px;
+    margin-right: 12px;
+    opacity: 0.9;
+  }
+
+  &__toggle {
+    ::ng-deep .mdc-label {
+      color: white;
+      font-size: 13px;
+    }
+  }
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* ── Connexion agent ──────────────────────────────── */
+.agent-login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 24px;
+
+  &__card {
+    max-width: 420px;
+    width: 100%;
+  }
+
+  &__avatar {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: #1976d2;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 16px;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  &__button {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 8px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+/* ── Dashboard ────────────────────────────────────── */
+.agent-dashboard {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+
+  /* ── Sidebar ── */
+  &__sidebar {
+    width: 300px;
+    min-width: 300px;
+    background: white;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+
+    .sidebar__title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      padding: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #424242;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #1976d2;
+      }
+    }
+
+    .sidebar__list {
+      flex: 1;
+
+      mat-list-item {
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: all 0.15s ease;
+
+        &:hover {
+          background-color: #f5f5f5;
+        }
+
+        &.active {
+          background-color: #e3f2fd;
+          border-left-color: #1976d2;
+        }
+
+        &.ended {
+          opacity: 0.6;
+        }
+      }
+
+      .session-meta {
+        font-size: 12px;
+        color: #9e9e9e;
+      }
+
+      .typing-badge {
+        color: #4caf50;
+        font-weight: 600;
+        animation: pulse 1.5s infinite;
+      }
+
+      .ended-badge {
+        font-size: 11px;
+        color: #f44336;
+        font-weight: 500;
+      }
+
+      .typing {
+        color: #4caf50;
+        animation: pulse 1.5s infinite;
+      }
+    }
+
+    .sidebar__empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 32px;
+      text-align: center;
+      color: #9e9e9e;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 12px;
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      &-sub {
+        font-size: 12px !important;
+        margin-top: 4px !important;
+        color: #bdbdbd;
+      }
+    }
+  }
+
+  /* ── Zone principale ── */
+  &__main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: white;
+
+    .main__client-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #fafafa;
+
+      .client-avatar {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: #757575;
+      }
+
+      .client-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .client-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #212121;
+      }
+
+      .client-subject {
+        font-size: 12px;
+        color: #9e9e9e;
+      }
+    }
+
+    .main__messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      scroll-behavior: smooth;
+    }
+
+    .main__input {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-top: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    .main__field {
+      flex: 1;
+
+      ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+    }
+
+    .main__send {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+    }
+
+    .main__empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: #bdbdbd;
+      text-align: center;
+
+      mat-icon {
+        font-size: 72px;
+        width: 72px;
+        height: 72px;
+        margin-bottom: 16px;
+      }
+
+      h3 {
+        margin: 0 0 8px;
+        color: #757575;
+      }
+
+      p {
+        margin: 0;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

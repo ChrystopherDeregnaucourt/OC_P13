@@ -1,0 +1,193 @@
+<!-- ============================================================
+     AGENT DASHBOARD - Interface agent de support
+     Your Car Your Way - POC Chat Angular
+     ============================================================ -->
+
+<div class="agent-container">
+
+  <!-- ─── En-tête ────────────────────────────────────────── -->
+  <mat-toolbar color="primary" class="agent-header">
+    <mat-icon class="agent-header__icon">headset_mic</mat-icon>
+    <span class="agent-header__title">Your Car Your Way</span>
+    <span class="agent-header__subtitle">Console Agent Support</span>
+
+    <!-- Contrôles agent connecté -->
+    <ng-container *ngIf="agentId$ | async">
+      <span class="spacer"></span>
+      <span class="agent-header__name">{{ agentName$ | async }}</span>
+      <mat-slide-toggle
+        [checked]="(agentAvailable$ | async) ?? false"
+        (change)="onToggleAvailability($event.checked)"
+        color="accent"
+        class="agent-header__toggle"
+      >
+        {{ (agentAvailable$ | async) ? 'Disponible' : 'Indisponible' }}
+      </mat-slide-toggle>
+    </ng-container>
+  </mat-toolbar>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ÉTAT : NON CONNECTÉ - Formulaire de connexion agent
+       ═══════════════════════════════════════════════════════ -->
+  <div *ngIf="!(agentId$ | async)" class="agent-login">
+    <mat-card class="agent-login__card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="agent-login__avatar">badge</mat-icon>
+        <mat-card-title>Connexion Agent</mat-card-title>
+        <mat-card-subtitle>Connectez-vous pour gérer les sessions de support</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="agent-login__form">
+          <mat-form-field appearance="outline">
+            <mat-label>Votre nom</mat-label>
+            <input matInput formControlName="name" placeholder="Sophie Martin">
+            <mat-icon matPrefix>person</mat-icon>
+            <mat-error *ngIf="loginForm.get('name')?.hasError('required')">
+              Le nom est requis
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Sessions max simultanées</mat-label>
+            <input matInput formControlName="maxChats" type="number" min="1" max="10">
+            <mat-icon matPrefix>forum</mat-icon>
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loginForm.invalid"
+            class="agent-login__button"
+          >
+            <mat-icon>login</mat-icon>
+            Se connecter
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       ÉTAT : CONNECTÉ - Dashboard agent
+       ═══════════════════════════════════════════════════════ -->
+  <div *ngIf="agentId$ | async" class="agent-dashboard">
+
+    <!-- ── Panneau latéral : liste des sessions ── -->
+    <div class="agent-dashboard__sidebar">
+      <h4 class="sidebar__title">
+        <mat-icon>chat</mat-icon>
+        Sessions actives
+        <mat-chip *ngIf="(activeSessions$ | async)?.length as count">
+          {{ count }}
+        </mat-chip>
+      </h4>
+
+      <mat-divider></mat-divider>
+
+      <mat-nav-list class="sidebar__list">
+        <mat-list-item
+          *ngFor="let session of (agentSessions$ | async); trackBy: trackBySessionId"
+          (click)="onSelectSession(session.sessionId)"
+          [class.active]="session.sessionId === (activeSessionId$ | async)"
+          [class.ended]="session.status === 'ended'"
+        >
+          <mat-icon matListItemIcon [class.typing]="session.isClientTyping">
+            {{ session.status === 'ended' ? 'chat_bubble_outline' : 'chat_bubble' }}
+          </mat-icon>
+          <span matListItemTitle>{{ session.clientName }}</span>
+          <span matListItemLine class="session-meta">
+            {{ session.subject || 'Général' }} ·
+            {{ session.messages.length }} msg
+            <span *ngIf="session.isClientTyping" class="typing-badge">écrit…</span>
+          </span>
+          <span *ngIf="session.status === 'ended'" class="ended-badge">Terminé</span>
+        </mat-list-item>
+      </mat-nav-list>
+
+      <!-- Aucune session -->
+      <div *ngIf="(agentSessions$ | async)?.length === 0" class="sidebar__empty">
+        <mat-icon>hourglass_empty</mat-icon>
+        <p>Aucune session en cours</p>
+        <p class="sidebar__empty-sub">
+          Les clients en attente vous seront assignés automatiquement.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Zone de chat principale ── -->
+    <div class="agent-dashboard__main">
+      <ng-container *ngIf="activeSession$ | async as session; else noSession">
+
+        <!-- Info client -->
+        <div class="main__client-bar">
+          <mat-icon class="client-avatar">person</mat-icon>
+          <div class="client-info">
+            <span class="client-name">{{ session.clientName }}</span>
+            <span class="client-subject">{{ session.subject || 'Question générale' }}</span>
+          </div>
+          <span class="spacer"></span>
+          <button
+            mat-stroked-button
+            color="warn"
+            *ngIf="session.status === 'active'"
+            (click)="onEndSession(session.sessionId)"
+          >
+            <mat-icon>call_end</mat-icon>
+            Terminer
+          </button>
+          <mat-chip *ngIf="session.status === 'ended'" color="accent">
+            Terminé
+          </mat-chip>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Messages -->
+        <div class="main__messages" #agentMessagesContainer>
+          <ng-container *ngFor="let msg of session.messages; trackBy: trackByMessageId">
+            <app-message-bubble
+              [message]="msg"
+              [agentLabel]="'Vous'"
+            />
+          </ng-container>
+
+          <app-typing-indicator *ngIf="session.isClientTyping" />
+        </div>
+
+        <!-- Zone de saisie -->
+        <div class="main__input" *ngIf="session.status === 'active'">
+          <mat-form-field appearance="outline" class="main__field">
+            <input
+              matInput
+              [(ngModel)]="messageContent"
+              (ngModelChange)="onInputChange($event, session.sessionId)"
+              (keydown)="onKeyDown($event, session.sessionId)"
+              placeholder="Répondre au client…"
+              autocomplete="off"
+            >
+          </mat-form-field>
+          <button
+            mat-fab
+            color="primary"
+            (click)="onSendMessage(session.sessionId)"
+            [disabled]="!messageContent.trim()"
+            class="main__send"
+          >
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Aucune session sélectionnée -->
+      <ng-template #noSession>
+        <div class="main__empty">
+          <mat-icon>support_agent</mat-icon>
+          <h3>Sélectionnez une session</h3>
+          <p>Choisissez une conversation dans le panneau de gauche pour commencer.</p>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

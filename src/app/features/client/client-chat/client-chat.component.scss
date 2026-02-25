@@ -1,0 +1,273 @@
+/* ============================================================
+   CLIENT CHAT - Styles
+   Your Car Your Way - POC Chat Angular
+   ============================================================ */
+
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  padding: 16px;
+}
+
+.chat-container {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+/* ── En-tête ──────────────────────────────────────── */
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+
+  &__icon {
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  &__title {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-left: auto;
+  }
+}
+
+/* ── Démarrage ────────────────────────────────────── */
+.chat-start {
+  padding: 24px;
+
+  &__card {
+    border: none;
+    box-shadow: none;
+  }
+
+  &__avatar {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    color: #1976d2;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 16px;
+
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  &__button {
+    margin-top: 8px;
+    padding: 8px;
+    font-size: 15px;
+    border-radius: 8px;
+
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+/* ── File d'attente ───────────────────────────────── */
+.chat-waiting {
+  padding: 24px;
+
+  &__card {
+    border: none;
+    box-shadow: none;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    padding: 24px 0;
+
+    h3 {
+      margin: 0;
+      color: #1976d2;
+    }
+
+    p {
+      margin: 0;
+      color: #616161;
+    }
+  }
+
+  &__estimate {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #e3f2fd;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: #1565c0 !important;
+    font-size: 14px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  &__messages {
+    width: 100%;
+    margin-top: 12px;
+    text-align: left;
+  }
+}
+
+/* ── Chat actif ───────────────────────────────────── */
+.chat-active {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+
+  &__agent-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fafafa;
+
+    .agent-avatar {
+      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      color: #1976d2;
+    }
+
+    .agent-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .agent-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #212121;
+    }
+
+    .agent-status {
+      font-size: 12px;
+      color: #9e9e9e;
+
+      &.online {
+        color: #4caf50;
+
+        &::before {
+          content: '●';
+          margin-right: 4px;
+          font-size: 8px;
+        }
+      }
+
+      &.offline {
+        color: #f44336;
+
+        &::before {
+          content: '●';
+          margin-right: 4px;
+          font-size: 8px;
+        }
+      }
+    }
+  }
+
+  &__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 300px;
+    max-height: 400px;
+    scroll-behavior: smooth;
+  }
+
+  &__input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid #e0e0e0;
+    background: #fafafa;
+  }
+
+  &__field {
+    flex: 1;
+
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+
+  &__send {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* ── Évaluation ───────────────────────────────────── */
+.chat-rating {
+  padding: 16px;
+  border-top: 1px solid #e0e0e0;
+  background: #f5f5f5;
+
+  &__card {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  &__stars {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin: 16px 0;
+
+    button {
+      transition: transform 0.15s ease;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  &__feedback {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}
