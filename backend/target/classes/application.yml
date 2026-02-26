@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: poc-chat-ycyw
+
+logging:
+  level:
+    root: INFO
+    com.ycyw.chat: DEBUG
+    org.springframework.web.socket: DEBUG
