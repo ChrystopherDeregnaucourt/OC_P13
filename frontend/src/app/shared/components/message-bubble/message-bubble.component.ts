@@ -33,7 +33,7 @@ import { RelativeTimePipe } from '../../pipes/relative-time.pipe';
       <div *ngIf="message.senderType !== 'system'" class="message__content">
         <div class="message__header">
           <span class="message__sender">
-            {{ message.senderType === 'client' ? 'Vous' : agentLabel }}
+            {{ message.senderType === 'client' ? clientLabel : agentLabel }}
           </span>
           <span class="message__time">{{ message.timestamp | relativeTime }}</span>
         </div>
@@ -136,4 +136,7 @@ export class MessageBubbleComponent {
 
   /** Label affiché pour l'agent (par défaut "Conseiller") */
   @Input() agentLabel = 'Conseiller';
+
+  /** Label affiché pour le client (par défaut "Vous") */
+  @Input() clientLabel = 'Vous';
 }
