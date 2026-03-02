@@ -224,6 +224,40 @@ CREATE TABLE vehicle_photos (
 CREATE INDEX idx_vehicle_photos_vehicle ON vehicle_photos (vehicle_id);
 
 -- -----------------------------------------------------------------------------
+-- Table : annonces
+-- Rôle  : Annonces de location publiées par les agences pour un véhicule donné.
+--         C'est l'entité visible côté client : elle décrit l'offre (prix, période,
+--         kilométrage inclus, conditions) et peut être activée/désactivée.
+-- Réf   : RENT-003, RENT-004
+-- -----------------------------------------------------------------------------
+CREATE TABLE annonces (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agency_id       UUID NOT NULL REFERENCES agencies(id),
+    vehicle_id      UUID NOT NULL REFERENCES vehicle_models(id),
+    title           VARCHAR(200) NOT NULL,           -- Ex: "Renault Clio - Paris Centre"
+    description     TEXT,                            -- Description libre de l'offre
+    daily_rate      DECIMAL(10,2) NOT NULL,          -- Prix par jour affiché
+    currency        VARCHAR(3)   NOT NULL DEFAULT 'EUR',
+    km_included     INT,                             -- Kilomètres inclus par jour (NULL = illimité)
+    available_from  DATE         NOT NULL,           -- Début de disponibilité
+    available_to    DATE         NOT NULL,           -- Fin de disponibilité
+    min_days        INT          NOT NULL DEFAULT 1, -- Durée minimum de location
+    max_days        INT,                             -- Durée maximum (NULL = pas de limite)
+    status          VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE'
+                        CHECK (status IN ('DRAFT', 'ACTIVE', 'INACTIVE', 'EXPIRED')),
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    CONSTRAINT chk_annonces_dates CHECK (available_to >= available_from),
+    CONSTRAINT chk_annonces_min_days CHECK (min_days > 0),
+    CONSTRAINT chk_annonces_max_days CHECK (max_days IS NULL OR max_days >= min_days)
+);
+
+CREATE INDEX idx_annonces_agency   ON annonces (agency_id);
+CREATE INDEX idx_annonces_vehicle  ON annonces (vehicle_id);
+CREATE INDEX idx_annonces_status   ON annonces (status);
+CREATE INDEX idx_annonces_dates    ON annonces (available_from, available_to);
+
+-- -----------------------------------------------------------------------------
 -- Table : reservations
 -- Rôle  : Réservations de véhicules
 -- Réf   : RENT-005 à RENT-010
@@ -233,6 +267,7 @@ CREATE TABLE reservations (
     user_id         UUID NOT NULL REFERENCES users(id),
     vehicle_id      UUID NOT NULL REFERENCES vehicle_models(id),
     agency_id       UUID NOT NULL REFERENCES agencies(id),
+    annonce_id      UUID REFERENCES annonces(id),   -- Annonce à l'origine de la réservation
     status          VARCHAR(20) NOT NULL DEFAULT 'CONFIRMED'
                         CHECK (status IN ('PENDING', 'CONFIRMED', 'ACTIVE', 'COMPLETED',
                                           'CANCELLED', 'MODIFIED')),
